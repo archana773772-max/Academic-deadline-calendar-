@@ -1,0 +1,1399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Academic Deadline Calendar</title>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f3f6fc;
+  color: #26334a;
+}
+
+header {
+  background: #253c78;
+  color: white;
+  padding: 22px 7%;
+}
+
+header h1 {
+  margin: 0 0 8px;
+}
+
+header p {
+  margin: 0;
+}
+
+nav {
+  background: white;
+  padding: 15px 7%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  box-shadow: 0 2px 6px #ddd;
+}
+
+nav a {
+  color: #253c78;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+main {
+  max-width: 1100px;
+  margin: auto;
+  padding: 25px 16px;
+}
+
+h2 {
+  color: #253c78;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 15px;
+}
+
+.card, .panel {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 3px 12px #dce3ef;
+}
+
+.stat-number {
+  font-size: 28px;
+  font-weight: bold;
+  color: #385cc0;
+}
+
+label {
+  display: block;
+  margin-top: 12px;
+  margin-bottom: 6px;
+  font-weight: bold;
+}
+
+input, select, textarea {
+  width: 100%;
+  padding: 11px;
+  border: 1px solid #cbd4e3;
+  border-radius: 6px;
+  font-size: 15px;
+  background: white;
+}
+
+button {
+  background: #385cc0;
+  color: white;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  margin: 8px 5px 0 0;
+}
+
+button:hover {
+  background: #253c78;
+}
+
+.delete {
+  background: #c94343;
+}
+
+.cancel {
+  background: #697586;
+}
+
+.done-btn {
+  background: #2f8f5b;
+}
+
+.task {
+  border-left: 5px solid #5478d8;
+  background: #f8faff;
+  padding: 15px;
+  margin: 12px 0;
+  border-radius: 7px;
+  overflow-wrap: anywhere;
+}
+
+.task h3 {
+  margin-top: 0;
+}
+
+/* Priority colours */
+.task.p-High { border-left-color: #c94343; }
+.task.p-Medium { border-left-color: #e0a100; }
+.task.p-Low { border-left-color: #5478d8; }
+
+/* Completed tasks */
+.task.is-done {
+  border-left-color: #2f8f5b;
+  background: #f0f8f3;
+}
+
+.task.is-done h3 {
+  text-decoration: line-through;
+  color: #657187;
+}
+
+.badge {
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: bold;
+  margin-right: 6px;
+  background: #e7ecf8;
+  color: #253c78;
+}
+
+.badge.High { background: #fbe3e3; color: #a12a2a; }
+.badge.Medium { background: #fff1cc; color: #8a6200; }
+.badge.Low { background: #e3ebfb; color: #253c78; }
+.badge.faculty { background: #efe3fb; color: #5b2a91; }
+
+.notice {
+  color: #b04b18;
+  font-weight: bold;
+}
+
+.muted {
+  color: #657187;
+}
+
+.check-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.check-row input {
+  width: auto;
+}
+
+.check-row label {
+  margin: 0;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+/* Calendar view */
+.cal-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.cal-top h3 {
+  margin: 0;
+  color: #253c78;
+}
+
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.cal-head {
+  text-align: center;
+  font-weight: bold;
+  font-size: 13px;
+  color: #657187;
+  padding: 6px 0;
+}
+
+.cal-day {
+  min-height: 84px;
+  border: 1px solid #e0e6f1;
+  border-radius: 6px;
+  padding: 4px;
+  background: #fbfcff;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.cal-day:hover {
+  background: #eef2fc;
+}
+
+.cal-day.empty {
+  background: transparent;
+  border-color: transparent;
+  cursor: default;
+}
+
+.cal-day.today {
+  border: 2px solid #385cc0;
+}
+
+.cal-num {
+  font-size: 13px;
+  font-weight: bold;
+  margin-bottom: 3px;
+}
+
+.chip {
+  display: block;
+  font-size: 11px;
+  padding: 2px 4px;
+  margin-bottom: 2px;
+  border-radius: 4px;
+  background: #5478d8;
+  color: white;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chip.High { background: #c94343; }
+.chip.Medium { background: #e0a100; }
+.chip.Low { background: #5478d8; }
+.chip.done { background: #2f8f5b; text-decoration: line-through; }
+
+.more {
+  font-size: 11px;
+  color: #657187;
+}
+
+footer {
+  background: #253c78;
+  color: white;
+  text-align: center;
+  padding: 20px;
+  margin-top: 20px;
+}
+
+section {
+  scroll-margin-top: 20px;
+}
+
+.tools {
+  margin-top: 12px;
+}
+
+.tools button {
+  margin: 4px 8px 0 0;
+}
+
+/* Dark mode */
+body.dark { background: #141a2b; color: #e3e8f5; }
+body.dark header, body.dark footer { background: #1b2a57; }
+body.dark nav { background: #1c2438; box-shadow: none; }
+body.dark nav a, body.dark h2, body.dark .cal-top h3 { color: #9db5ff; }
+body.dark .card, body.dark .panel { background: #1c2438; box-shadow: none; }
+body.dark input, body.dark select, body.dark textarea {
+  background: #141a2b;
+  color: #e3e8f5;
+  border-color: #3a4766;
+}
+body.dark .task { background: #222c45; }
+body.dark .task.is-done { background: #1d3329; }
+body.dark .task.is-done h3 { color: #9aa7c2; }
+body.dark .cal-day { background: #222c45; border-color: #34405c; }
+body.dark .cal-day:hover { background: #2b3858; }
+body.dark .cal-day.empty { background: transparent; border-color: transparent; }
+body.dark .cal-day.today { border-color: #8fb0ff; }
+body.dark .muted, body.dark .cal-head, body.dark .more { color: #9aa7c2; }
+body.dark .stat-number { color: #8fb0ff; }
+body.dark .notice { color: #ff9f6b; }
+body.dark .badge { background: #2b3858; color: #cfdcff; }
+body.dark .badge.High { background: #5a2323; color: #ffc9c9; }
+body.dark .badge.Medium { background: #54410a; color: #ffe29a; }
+body.dark .badge.faculty { background: #3d2a5c; color: #e2cfff; }
+
+@media (max-width: 600px) {
+  header {
+    padding: 20px;
+  }
+
+  nav {
+    gap: 14px;
+    padding: 15px;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .panel {
+    padding: 14px;
+  }
+
+  /* On phones, calendar chips become small dots */
+  .cal-day {
+    min-height: 52px;
+    padding: 3px;
+  }
+
+  .chip {
+    display: inline-block;
+    width: 9px;
+    height: 9px;
+    padding: 0;
+    margin: 0 2px 2px 0;
+    border-radius: 50%;
+  }
+
+  .chip .t, .more {
+    display: none;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header id="home">
+  <h1>📚 Academic Deadline Calendar</h1>
+  <p>Plan your studies. Track your deadlines. Stay organized.</p>
+  <div class="tools">
+    <button type="button" class="cancel" id="darkToggle">🌙 Dark Mode</button>
+    <button type="button" class="cancel" id="notifyButton">🔔 Enable Notifications</button>
+  </div>
+</header>
+
+<nav>
+  <a href="#home">🏠 Home</a>
+  <a href="#about">ℹ️ About</a>
+  <a href="#importance">⭐ Importance</a>
+  <a href="#calendar">🗓️ Calendar</a>
+  <a href="#planner">📅 Planner</a>
+  <a href="#features">✨ Search &amp; Filter</a>
+  <a href="#deadlines">📌 My Deadlines</a>
+</nav>
+
+<main>
+  <section class="panel" id="explore">
+    <h2>✨ Explore Academic Tools</h2>
+    <p>Click below to learn how each tool helps students.</p>
+
+    <button onclick="showDetails('calendar')">📅 Calendar Guide</button>
+    <button onclick="showDetails('reminders')">🔔 Reminder Guide</button>
+    <button onclick="showDetails('planning')">📚 Study Planning Guide</button>
+
+    <div id="detailsBox" class="panel" hidden>
+      <h3 id="detailsTitle"></h3>
+      <p id="detailsText"></p>
+      <button onclick="closeDetails()">Close</button>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>💡 Random Study Tip</h2>
+    <p id="studyTip">Click the button to discover a study tip!</p>
+    <button onclick="randomTip()">Get Another Tip</button>
+  </section>
+
+  <section id="about" class="panel">
+    <h2>About the Project</h2>
+    <p>
+      The Academic Deadline Calendar is a student-friendly website
+      that manages assignments, examinations, practicals and other
+      academic activities in one place.
+    </p>
+  </section>
+
+  <section id="importance" class="panel">
+    <h2>Why Is It Important?</h2>
+    <ul>
+      <li>Helps students remember important deadlines.</li>
+      <li>Improves time management and planning.</li>
+      <li>Organizes tasks according to courses.</li>
+      <li>Reduces the chances of missing submissions.</li>
+    </ul>
+  </section>
+
+  <section class="stats">
+    <div class="card">
+      <p>Total Deadlines</p>
+      <div class="stat-number" id="totalCount">0</div>
+    </div>
+
+    <div class="card">
+      <p>Due in 3 Days</p>
+      <div class="stat-number" id="upcomingCount">0</div>
+    </div>
+
+    <div class="card">
+      <p>Overdue Tasks</p>
+      <div class="stat-number" id="overdueCount">0</div>
+    </div>
+
+    <div class="card">
+      <p>Completed</p>
+      <div class="stat-number" id="doneCount">0</div>
+    </div>
+  </section>
+
+  <section id="calendar" class="panel">
+    <h2>🗓️ Monthly Calendar</h2>
+    <p class="muted">
+      Click any date to start adding a deadline for that day.
+      Colours show priority; green means completed.
+    </p>
+
+    <div class="cal-top">
+      <button type="button" id="prevMonth">◀ Prev</button>
+      <h3 id="calTitle"></h3>
+      <div>
+        <button type="button" class="cancel" id="todayMonth">Today</button>
+        <button type="button" id="nextMonth">Next ▶</button>
+      </div>
+    </div>
+
+    <div class="cal-grid" id="calGrid"></div>
+  </section>
+
+  <section id="planner" class="panel">
+    <h2>📅 Manage Your Deadlines</h2>
+
+    <label for="role">User Role</label>
+    <select id="role">
+      <option value="Student">Student</option>
+      <option value="Faculty">Faculty</option>
+    </select>
+    <p class="muted" id="roleMessage"></p>
+
+    <h3 id="formHeading">Add a New Deadline</h3>
+
+    <form id="deadlineForm">
+      <label for="title">Task / Event Name</label>
+      <input id="title" required maxlength="100"
+        placeholder="Example: Maths Assignment">
+
+      <div class="form-row">
+        <div>
+          <label for="course">Course / Subject</label>
+          <select id="course" required>
+            <option value="">Select Subject</option>
+            <option>Mathematics</option>
+            <option>Python</option>
+            <option>HTML</option>
+            <option>ECE</option>
+            <option>Physics</option>
+            <option>Environmental Science</option>
+            <option>Other</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="activity">Activity Type</label>
+          <select id="activity" required>
+            <option value="Assignment">Assignment</option>
+            <option value="Examination">Examination</option>
+            <option value="Practical">Practical</option>
+            <option value="Project">Project</option>
+            <option value="Class">Class</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div>
+          <label for="date">Deadline Date</label>
+          <input id="date" type="date" required>
+        </div>
+
+        <div>
+          <label for="time">Time (optional)</label>
+          <input id="time" type="time">
+        </div>
+      </div>
+
+      <label for="priority">Priority</label>
+      <select id="priority">
+        <option value="High">High</option>
+        <option value="Medium" selected>Medium</option>
+        <option value="Low">Low</option>
+      </select>
+
+      <label for="description">Description</label>
+      <textarea id="description" rows="3"
+        placeholder="Add any important details"></textarea>
+
+      <div class="check-row">
+        <input id="recurring" type="checkbox">
+        <label for="recurring">Repeat weekly for 4 weeks</label>
+      </div>
+
+      <button type="submit" id="saveButton">Add Deadline</button>
+      <button type="button" class="cancel"
+        id="cancelButton" hidden>Cancel Edit</button>
+    </form>
+  </section>
+
+  <section id="features" class="panel">
+    <h2>🔍 Search and Filter</h2>
+
+    <label for="search">Search Tasks</label>
+    <input id="search" placeholder="Search by task name...">
+
+    <label for="filterCourse">Filter by Course</label>
+    <select id="filterCourse">
+      <option value="">All Courses</option>
+      <option>Mathematics</option>
+      <option>Python</option>
+      <option>HTML</option>
+      <option>ECE</option>
+      <option>Physics</option>
+      <option>Environmental Science</option>
+      <option>Other</option>
+    </select>
+
+    <label for="filterActivity">Filter by Activity</label>
+    <select id="filterActivity">
+      <option value="">All Activities</option>
+      <option>Assignment</option>
+      <option>Examination</option>
+      <option>Practical</option>
+      <option>Project</option>
+      <option>Class</option>
+      <option>Other</option>
+    </select>
+
+    <label for="filterStatus">Filter by Status</label>
+    <select id="filterStatus">
+      <option value="">All Tasks</option>
+      <option value="pending">Pending</option>
+      <option value="done">Completed</option>
+    </select>
+
+    <label for="sortBy">Sort By</label>
+    <select id="sortBy">
+      <option value="date">Date (earliest first)</option>
+      <option value="priority">Priority (High first)</option>
+      <option value="course">Course</option>
+    </select>
+
+    <button type="button" id="exportButton">Download Deadlines (CSV)</button>
+    <button type="button" id="icsButton">Add to Google Calendar (.ics)</button>
+    <button type="button" id="backupButton">💾 Backup (JSON)</button>
+    <button type="button" id="restoreButton">📂 Restore from Backup</button>
+    <input type="file" id="restoreInput" accept=".json,application/json" hidden>
+    <button type="button" class="cancel" id="clearFilters">Clear Filters</button>
+  </section>
+
+  <section id="deadlines" class="panel">
+    <h2>📌 Your Deadline List</h2>
+    <p class="muted">
+      Deadlines within the next 3 days will display a reminder.
+      Past tasks that are not completed will be marked overdue.
+    </p>
+    <div id="taskList"></div>
+  </section>
+
+  <section class="panel">
+    <h2>How It Works</h2>
+    <ol>
+      <li>Enter the task name and subject.</li>
+      <li>Select the activity, priority, deadline date and time.</li>
+      <li>Click Add Deadline.</li>
+      <li>See it on the monthly calendar and in your deadline list.</li>
+      <li>Mark tasks as done, or search, filter, edit and delete them.</li>
+      <li>Export your list as CSV or as a calendar (.ics) file.</li>
+      <li>Make a JSON backup and restore it later if browser data is lost.</li>
+      <li>Turn on notifications and dark mode from the top of the page.</li>
+    </ol>
+  </section>
+</main>
+
+<footer>
+  <p>Academic Deadline Calendar | Student Project</p>
+  <p>Designed to make academic planning easier.</p>
+</footer>
+
+<script>
+const $ = id => document.getElementById(id);
+
+/* ---------- Explore tools and tips ---------- */
+
+function showDetails(topic) {
+  const details = {
+    calendar: {
+      title: "📅 Calendar Guide",
+      text: "Use the academic calendar to organize assignments, practicals, exams and project submissions by date. Add each deadline to your planner so you can see what needs attention."
+    },
+    reminders: {
+      title: "🔔 Reminder Guide",
+      text: "Check your upcoming deadlines regularly. Tasks due soon are highlighted by this website so you can prepare in advance instead of rushing at the last minute."
+    },
+    planning: {
+      title: "📚 Study Planning Guide",
+      text: "Divide large assignments into smaller tasks. Set an early personal target date, prioritize difficult subjects and review your progress every day."
+    }
+  };
+
+  $("detailsTitle").textContent = details[topic].title;
+  $("detailsText").textContent = details[topic].text;
+  $("detailsBox").hidden = false;
+
+  $("detailsBox").scrollIntoView({
+    behavior: "smooth",
+    block: "center"
+  });
+}
+
+function closeDetails() {
+  $("detailsBox").hidden = true;
+}
+
+const tips = [
+  "Start preparing for exams before the last week.",
+  "Break a large assignment into small tasks.",
+  "Check tomorrow's deadlines before going to sleep.",
+  "Finish important tasks before spending time on distractions.",
+  "Keep time for revision after completing each topic.",
+  "Use your calendar to plan practical records and submissions."
+];
+
+function randomTip() {
+  $("studyTip").textContent =
+    tips[Math.floor(Math.random() * tips.length)];
+}
+
+/* ---------- Data ---------- */
+
+let tasks = [];
+let editingId = null;
+
+// Load saved deadlines from this browser.
+try {
+  tasks = JSON.parse(localStorage.getItem("academicDeadlines") || "[]");
+  if (!Array.isArray(tasks)) tasks = [];
+} catch {
+  tasks = [];
+}
+
+// Older saved tasks may not have the newer fields, so add defaults.
+tasks.forEach(t => {
+  if (t.done === undefined) t.done = false;
+  if (!t.priority) t.priority = "Medium";
+  if (!t.time) t.time = "";
+  if (!t.addedBy) t.addedBy = "Student";
+});
+
+function saveTasks() {
+  try {
+    localStorage.setItem("academicDeadlines", JSON.stringify(tasks));
+  } catch {
+    alert("Could not save data in this browser.");
+  }
+}
+
+function escapeHTML(value) {
+  return String(value ?? "").replace(/[&<>"']/g, char => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  })[char]);
+}
+
+function pad(n) {
+  return String(n).padStart(2, "0");
+}
+
+function dateToString(d) {
+  return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
+}
+
+function todayString() {
+  return dateToString(new Date());
+}
+
+function daysUntil(dateString) {
+  const now = new Date(todayString() + "T00:00:00");
+  const due = new Date(dateString + "T00:00:00");
+  return Math.round((due - now) / 86400000);
+}
+
+function download(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+/* ---------- Role (Student / Faculty) ---------- */
+
+try {
+  const savedRole = localStorage.getItem("academicRole");
+  if (savedRole === "Student" || savedRole === "Faculty") {
+    $("role").value = savedRole;
+  }
+} catch {}
+
+function updateRoleMessage() {
+  $("roleMessage").textContent =
+    $("role").value === "Faculty"
+      ? "Faculty view: deadlines you add are marked as faculty deadlines. Students can mark them done but cannot edit or delete them."
+      : "Student view: manage your own tasks. Faculty deadlines are read-only.";
+}
+
+function canModify(task) {
+  return $("role").value === "Faculty" || task.addedBy !== "Faculty";
+}
+
+$("role").addEventListener("change", function() {
+  try { localStorage.setItem("academicRole", this.value); } catch {}
+  updateRoleMessage();
+  renderAll();
+});
+
+/* ---------- Form ---------- */
+
+function resetForm() {
+  $("deadlineForm").reset();
+  $("priority").value = "Medium";
+  editingId = null;
+  $("formHeading").textContent = "Add a New Deadline";
+  $("saveButton").textContent = "Add Deadline";
+  $("cancelButton").hidden = true;
+}
+
+$("deadlineForm").addEventListener("submit", function(event) {
+  event.preventDefault();
+
+  const title = $("title").value.trim();
+  const course = $("course").value;
+  const activity = $("activity").value;
+  const date = $("date").value;
+  const time = $("time").value;
+  const priority = $("priority").value;
+  const description = $("description").value.trim();
+
+  if (!title || !course || !date) {
+    alert("Please complete all required fields.");
+    return;
+  }
+
+  if (date < todayString() &&
+      !confirm("This date is in the past. Save anyway?")) {
+    return;
+  }
+
+  if (editingId !== null) {
+    const task = tasks.find(t => t.id === editingId);
+
+    if (task) {
+      Object.assign(task, {
+        title, course, activity, date, time, priority, description
+      });
+    }
+  } else {
+    const count = $("recurring").checked ? 4 : 1;
+
+    for (let i = 0; i < count; i++) {
+      const due = new Date(date + "T12:00:00");
+      due.setDate(due.getDate() + i * 7);
+
+      tasks.push({
+        id: Date.now().toString() + "-" + i,
+        title,
+        course,
+        activity,
+        date: dateToString(due),
+        time,
+        priority,
+        description,
+        done: false,
+        addedBy: $("role").value
+      });
+    }
+  }
+
+  saveTasks();
+  resetForm();
+  renderAll();
+});
+
+function editTask(id) {
+  const task = tasks.find(t => t.id === id);
+  if (!task || !canModify(task)) return;
+
+  editingId = id;
+  $("title").value = task.title;
+  $("course").value = task.course;
+  $("activity").value = task.activity;
+  $("date").value = task.date;
+  $("time").value = task.time || "";
+  $("priority").value = task.priority || "Medium";
+  $("description").value = task.description || "";
+  $("recurring").checked = false;
+
+  $("formHeading").textContent = "Edit Deadline";
+  $("saveButton").textContent = "Save Changes";
+  $("cancelButton").hidden = false;
+
+  $("planner").scrollIntoView({ behavior: "smooth" });
+}
+
+function deleteTask(id) {
+  const task = tasks.find(t => t.id === id);
+  if (!task || !canModify(task)) return;
+
+  if (!confirm("Are you sure you want to delete this deadline?")) return;
+
+  tasks = tasks.filter(t => t.id !== id);
+  if (editingId === id) resetForm();
+
+  saveTasks();
+  renderAll();
+}
+
+function toggleDone(id) {
+  const task = tasks.find(t => t.id === id);
+  if (!task) return;
+
+  task.done = !task.done;
+  saveTasks();
+  renderAll();
+}
+
+/* ---------- Task list ---------- */
+
+const priorityOrder = { High: 0, Medium: 1, Low: 2 };
+
+function renderTasks() {
+  const search = $("search").value.toLowerCase().trim();
+  const courseFilter = $("filterCourse").value;
+  const activityFilter = $("filterActivity").value;
+  const statusFilter = $("filterStatus").value;
+  const sortBy = $("sortBy").value;
+
+  const visible = tasks
+    .filter(t =>
+      t.title.toLowerCase().includes(search) &&
+      (!courseFilter || t.course === courseFilter) &&
+      (!activityFilter || t.activity === activityFilter) &&
+      (!statusFilter ||
+        (statusFilter === "done" ? t.done : !t.done))
+    )
+    .sort((a, b) => {
+      if (sortBy === "priority") {
+        return (priorityOrder[a.priority] - priorityOrder[b.priority]) ||
+          a.date.localeCompare(b.date);
+      }
+      if (sortBy === "course") {
+        return a.course.localeCompare(b.course) ||
+          a.date.localeCompare(b.date);
+      }
+      return a.date.localeCompare(b.date) ||
+        (a.time || "").localeCompare(b.time || "");
+    });
+
+  const today = todayString();
+
+  $("totalCount").textContent = tasks.length;
+
+  $("upcomingCount").textContent = tasks.filter(t =>
+    !t.done && t.date >= today && daysUntil(t.date) <= 3
+  ).length;
+
+  $("overdueCount").textContent = tasks.filter(t =>
+    !t.done && t.date < today
+  ).length;
+
+  $("doneCount").textContent = tasks.filter(t => t.done).length;
+
+  if (visible.length === 0) {
+    $("taskList").innerHTML =
+      "<p>No deadlines found. Add a task or change your filters.</p>";
+    return;
+  }
+
+  $("taskList").innerHTML = visible.map(task => {
+    const days = daysUntil(task.date);
+    let status = "";
+
+    if (task.done) {
+      status = '<p style="color:#2f8f5b;font-weight:bold;">✅ Completed</p>';
+    } else if (days < 0) {
+      status = '<p class="notice">⚠️ Overdue</p>';
+    } else if (days === 0) {
+      status = '<p class="notice">🔔 Due today!</p>';
+    } else if (days <= 3) {
+      status = '<p class="notice">🔔 Reminder: due soon!</p>';
+    }
+
+    const modifiable = canModify(task);
+    const facultyBadge = task.addedBy === "Faculty"
+      ? '<span class="badge faculty">👩‍🏫 Faculty</span>'
+      : "";
+
+    const actions = modifiable
+      ? `<button data-action="edit" data-id="${escapeHTML(task.id)}">Edit</button>
+         <button class="delete" data-action="delete" data-id="${escapeHTML(task.id)}">Delete</button>`
+      : '<p class="muted">Read-only (posted by faculty)</p>';
+
+    return `
+      <article class="task p-${escapeHTML(task.priority)} ${task.done ? "is-done" : ""}">
+        <h3>${escapeHTML(task.title)}</h3>
+        <p>
+          <span class="badge ${escapeHTML(task.priority)}">${escapeHTML(task.priority)} priority</span>
+          ${facultyBadge}
+        </p>
+        <p><strong>Course:</strong> ${escapeHTML(task.course)}</p>
+        <p><strong>Activity:</strong> ${escapeHTML(task.activity)}</p>
+        <p><strong>Deadline:</strong> ${escapeHTML(task.date)}${task.time ? " at " + escapeHTML(task.time) : ""}</p>
+        <p>${escapeHTML(task.description || "No description added.")}</p>
+        ${status}
+        <button class="done-btn" data-action="done"
+          data-id="${escapeHTML(task.id)}">${task.done ? "↩ Mark Pending" : "✔ Mark Done"}</button>
+        ${actions}
+      </article>
+    `;
+  }).join("");
+}
+
+$("taskList").addEventListener("click", function(event) {
+  const button = event.target.closest("button[data-action]");
+  if (!button) return;
+
+  const id = button.dataset.id;
+  const action = button.dataset.action;
+
+  if (action === "edit") editTask(id);
+  if (action === "delete") deleteTask(id);
+  if (action === "done") toggleDone(id);
+});
+
+/* ---------- Monthly calendar ---------- */
+
+const now = new Date();
+let viewYear = now.getFullYear();
+let viewMonth = now.getMonth();
+
+function renderCalendar() {
+  const first = new Date(viewYear, viewMonth, 1);
+  const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+  const today = todayString();
+
+  $("calTitle").textContent = first.toLocaleString("default", {
+    month: "long",
+    year: "numeric"
+  });
+
+  const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  let html = dayNames.map(d => `<div class="cal-head">${d}</div>`).join("");
+
+  for (let i = 0; i < first.getDay(); i++) {
+    html += '<div class="cal-day empty"></div>';
+  }
+
+  for (let day = 1; day <= daysInMonth; day++) {
+    const dateStr = viewYear + "-" + pad(viewMonth + 1) + "-" + pad(day);
+
+    const dayTasks = tasks
+      .filter(t => t.date === dateStr)
+      .sort((a, b) => (a.time || "").localeCompare(b.time || ""));
+
+    const shown = dayTasks.slice(0, 2).map(t => `
+      <span class="chip ${t.done ? "done" : escapeHTML(t.priority)}"
+        title="${escapeHTML(t.title)} (${escapeHTML(t.course)})">
+        <span class="t">${escapeHTML(t.title)}</span>
+      </span>`).join("");
+
+    const extra = dayTasks.length > 2
+      ? `<div class="more">+${dayTasks.length - 2} more</div>`
+      : "";
+
+    html += `
+      <div class="cal-day ${dateStr === today ? "today" : ""}"
+        data-date="${dateStr}">
+        <div class="cal-num">${day}</div>
+        ${shown}${extra}
+      </div>`;
+  }
+
+  $("calGrid").innerHTML = html;
+}
+
+$("calGrid").addEventListener("click", function(event) {
+  const cell = event.target.closest(".cal-day[data-date]");
+  if (!cell) return;
+
+  $("date").value = cell.dataset.date;
+  $("planner").scrollIntoView({ behavior: "smooth" });
+  $("title").focus({ preventScroll: true });
+});
+
+$("prevMonth").addEventListener("click", function() {
+  viewMonth--;
+  if (viewMonth < 0) { viewMonth = 11; viewYear--; }
+  renderCalendar();
+});
+
+$("nextMonth").addEventListener("click", function() {
+  viewMonth++;
+  if (viewMonth > 11) { viewMonth = 0; viewYear++; }
+  renderCalendar();
+});
+
+$("todayMonth").addEventListener("click", function() {
+  const d = new Date();
+  viewYear = d.getFullYear();
+  viewMonth = d.getMonth();
+  renderCalendar();
+});
+
+/* ---------- Filters ---------- */
+
+$("search").addEventListener("input", renderTasks);
+$("filterCourse").addEventListener("change", renderTasks);
+$("filterActivity").addEventListener("change", renderTasks);
+$("filterStatus").addEventListener("change", renderTasks);
+$("sortBy").addEventListener("change", renderTasks);
+
+$("clearFilters").addEventListener("click", function() {
+  $("search").value = "";
+  $("filterCourse").value = "";
+  $("filterActivity").value = "";
+  $("filterStatus").value = "";
+  $("sortBy").value = "date";
+  renderTasks();
+});
+
+$("cancelButton").addEventListener("click", resetForm);
+
+/* ---------- Export ---------- */
+
+$("exportButton").addEventListener("click", function() {
+  if (tasks.length === 0) {
+    alert("Add at least one deadline before exporting.");
+    return;
+  }
+
+  const headers = [
+    "Task", "Course", "Activity", "Deadline", "Time",
+    "Priority", "Status", "Description"
+  ];
+
+  const rows = tasks.map(t => [
+    t.title, t.course, t.activity, t.date, t.time || "",
+    t.priority, t.done ? "Completed" : "Pending", t.description || ""
+  ]);
+
+  function csvCell(value) {
+    let text = String(value ?? "");
+
+    // Prevent spreadsheet formulas in exported user-entered text.
+    if (/^[=+\-@\t\r]/.test(text)) text = "'" + text;
+
+    return '"' + text.replace(/"/g, '""') + '"';
+  }
+
+  const csv = [headers, ...rows]
+    .map(row => row.map(csvCell).join(","))
+    .join("\r\n");
+
+  download(
+    new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" }),
+    "academic-deadlines.csv"
+  );
+});
+
+// Calendar file that Google Calendar, Outlook and phones can import.
+$("icsButton").addEventListener("click", function() {
+  if (tasks.length === 0) {
+    alert("Add at least one deadline before exporting.");
+    return;
+  }
+
+  function icsText(value) {
+    return String(value ?? "")
+      .replace(/\\/g, "\\\\")
+      .replace(/;/g, "\\;")
+      .replace(/,/g, "\\,")
+      .replace(/\r?\n/g, "\\n");
+  }
+
+  const stamp = new Date().toISOString()
+    .replace(/[-:]/g, "").split(".")[0] + "Z";
+
+  const lines = [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//Academic Deadline Calendar//EN"
+  ];
+
+  tasks.forEach(t => {
+    const day = t.date.replace(/-/g, "");
+
+    lines.push("BEGIN:VEVENT");
+    lines.push("UID:" + t.id + "@academic-deadline-calendar");
+    lines.push("DTSTAMP:" + stamp);
+
+    if (t.time) {
+      lines.push("DTSTART:" + day + "T" + t.time.replace(":", "") + "00");
+      lines.push("DURATION:PT1H");
+    } else {
+      lines.push("DTSTART;VALUE=DATE:" + day);
+    }
+
+    lines.push("SUMMARY:" + icsText(t.title + " (" + t.course + ")"));
+    lines.push("DESCRIPTION:" + icsText(
+      t.activity + " - " + t.priority + " priority. " + (t.description || "")
+    ));
+    lines.push("END:VEVENT");
+  });
+
+  lines.push("END:VCALENDAR");
+
+  download(
+    new Blob([lines.join("\r\n")], { type: "text/calendar;charset=utf-8;" }),
+    "academic-deadlines.ics"
+  );
+});
+
+/* ---------- Dark mode ---------- */
+
+function applyTheme(dark) {
+  document.body.classList.toggle("dark", dark);
+  $("darkToggle").textContent = dark ? "☀️ Light Mode" : "🌙 Dark Mode";
+}
+
+let savedTheme = null;
+try { savedTheme = localStorage.getItem("academicTheme"); } catch {}
+
+applyTheme(
+  savedTheme
+    ? savedTheme === "dark"
+    : window.matchMedia &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches
+);
+
+$("darkToggle").addEventListener("click", function() {
+  const dark = !document.body.classList.contains("dark");
+  applyTheme(dark);
+  try { localStorage.setItem("academicTheme", dark ? "dark" : "light"); } catch {}
+});
+
+/* ---------- Browser notifications ---------- */
+
+let notifyOn = false;
+try { notifyOn = localStorage.getItem("academicNotify") === "on"; } catch {}
+
+function updateNotifyButton() {
+  const button = $("notifyButton");
+
+  if (!("Notification" in window)) {
+    button.textContent = "🔔 Notifications not supported";
+    button.disabled = true;
+    return;
+  }
+
+  button.textContent =
+    notifyOn && Notification.permission === "granted"
+      ? "🔔 Notifications On (click to turn off)"
+      : "🔔 Enable Notifications";
+}
+
+// Shows one notification per task per day for tasks due today or tomorrow.
+// This works only while the page is open in the browser.
+function checkReminders() {
+  if (!notifyOn || !("Notification" in window) ||
+      Notification.permission !== "granted") return;
+
+  const today = todayString();
+  let notified = {};
+
+  try {
+    notified = JSON.parse(localStorage.getItem("academicNotified") || "{}");
+  } catch {
+    notified = {};
+  }
+
+  const kept = {};
+
+  tasks.forEach(t => {
+    if (t.done) return;
+
+    const days = daysUntil(t.date);
+    if (days !== 0 && days !== 1) return;
+
+    if (notified[t.id] === today) {
+      kept[t.id] = today;
+      return;
+    }
+
+    try {
+      new Notification(
+        (days === 0 ? "Due today: " : "Due tomorrow: ") + t.title,
+        {
+          body: t.course + " - " + t.activity +
+            (t.time ? " at " + t.time : "")
+        }
+      );
+      kept[t.id] = today;
+    } catch {
+      // Some mobile browsers do not allow this kind of notification.
+    }
+  });
+
+  try {
+    localStorage.setItem("academicNotified", JSON.stringify(kept));
+  } catch {}
+}
+
+$("notifyButton").addEventListener("click", function() {
+  if (!("Notification" in window)) return;
+
+  if (notifyOn) {
+    notifyOn = false;
+    try { localStorage.setItem("academicNotify", "off"); } catch {}
+    updateNotifyButton();
+    return;
+  }
+
+  Promise.resolve(Notification.requestPermission()).then(permission => {
+    if (permission === "granted") {
+      notifyOn = true;
+      try { localStorage.setItem("academicNotify", "on"); } catch {}
+      checkReminders();
+    } else {
+      alert("Notifications are blocked. Allow them in your browser's site settings and try again.");
+    }
+
+    updateNotifyButton();
+  });
+});
+
+setInterval(checkReminders, 30 * 60 * 1000);
+
+/* ---------- Backup and restore ---------- */
+
+$("backupButton").addEventListener("click", function() {
+  if (tasks.length === 0) {
+    alert("Add at least one deadline before making a backup.");
+    return;
+  }
+
+  const backup = {
+    app: "Academic Deadline Calendar",
+    exportedAt: new Date().toISOString(),
+    tasks
+  };
+
+  download(
+    new Blob([JSON.stringify(backup, null, 2)], {
+      type: "application/json"
+    }),
+    "academic-deadlines-backup.json"
+  );
+});
+
+$("restoreButton").addEventListener("click", function() {
+  $("restoreInput").click();
+});
+
+$("restoreInput").addEventListener("change", function() {
+  const input = this;
+  const file = input.files[0];
+  if (!file) return;
+
+  if (file.size > 2000000) {
+    alert("That file is too large to be a backup.");
+    input.value = "";
+    return;
+  }
+
+  const reader = new FileReader();
+
+  reader.onload = function() {
+    try {
+      const data = JSON.parse(reader.result);
+      const list = Array.isArray(data) ? data : data.tasks;
+
+      if (!Array.isArray(list)) throw new Error("Not a backup");
+
+      const existing = new Set(tasks.map(t => t.id));
+      const priorities = ["High", "Medium", "Low"];
+      let added = 0;
+
+      list.forEach(item => {
+        if (!item || typeof item !== "object") return;
+
+        const title = String(item.title ?? "").trim().slice(0, 100);
+        const date = String(item.date ?? "");
+
+        if (!title || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return;
+
+        let id = String(item.id ?? "");
+        if (id && existing.has(id)) return; // already in the planner
+
+        if (!id) {
+          id = Date.now().toString() + "-r" +
+            Math.random().toString(36).slice(2, 7);
+        }
+
+        tasks.push({
+          id,
+          title,
+          course: String(item.course || "Other").slice(0, 50),
+          activity: String(item.activity || "Assignment").slice(0, 50),
+          date,
+          time: /^\d{2}:\d{2}$/.test(item.time || "") ? item.time : "",
+          priority: priorities.includes(item.priority) ? item.priority : "Medium",
+          description: String(item.description || "").slice(0, 1000),
+          done: item.done === true,
+          addedBy: item.addedBy === "Faculty" ? "Faculty" : "Student"
+        });
+
+        existing.add(id);
+        added++;
+      });
+
+      saveTasks();
+      renderAll();
+      alert("Restored " + added + " new deadline(s).");
+    } catch {
+      alert("That file is not a valid backup.");
+    }
+
+    input.value = "";
+  };
+
+  reader.readAsText(file);
+});
+
+/* ---------- Start ---------- */
+
+function renderAll() {
+  renderTasks();
+  renderCalendar();
+  checkReminders();
+}
+
+updateNotifyButton();
+
+updateRoleMessage();
+renderAll();
+</script>
+
+</body>
+</html>
